@@ -42,7 +42,8 @@ mongoose.connect("mongodb://localhost:27017/learnDB", {
 // Create a Schema for the data
 const userSchema = new mongoose.Schema({
   email: String,
-  password: String
+  password: String,
+  secrets: String
 });
 
 //#insert passport plugin to tap into userSchema
@@ -78,7 +79,35 @@ app.get("/secrets", function(req, res) {
     res.render("secrets");
   } else {
     res.redirect("/login");
+    // console.log(req.body);
   }
+});
+
+// Secrets Route
+app.get("/submit", function(req, res) {
+  if (req.isAuthenticated()) {
+    res.redirect("/submit");
+  } else {
+    res.render("submit");
+
+  }
+});
+
+// Post route
+app.post("/submit", function(req, res){
+  const submittedSecret = req.body.secret;
+  console.log(req.body.secrets);
+  User.findById(req.body.secrets, (err, foundUser) => {
+    if (err){
+      console.log(err);
+    }else{
+      if (foundUser){
+      //  foundUser.secret = submittedSecret;
+        foundUser.save();
+        res.redirect("/secrets");
+      }
+    }
+  });
 });
 
 // Post Route
@@ -90,7 +119,7 @@ app.post("/register", function(req, res) {
       console.log(err);
       res.redirect("/register");
     } else {
-      passport.authenticate("local")(req, res, function() {
+        passport.authenticate("local")(req, res, function() {
         res.render("secrets");
       });
     }
